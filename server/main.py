@@ -15,8 +15,7 @@ def receive(client):
             if not msg:
                 break
             data += msg
-            data = data[:-1]
-        return data.decode('utf-8')
+        return data.decode('utf-8').strip("|")
     except Exception as e:
         print('receiving', e)
 
@@ -30,7 +29,6 @@ def handle(client, address):
     print(f'connected to {address}')
     connection_lost = False
     ID = 0
-    print(len(sheet['A']))
 
     def communication():
         nonlocal connection_lost
@@ -250,8 +248,8 @@ def handle(client, address):
         communication()
 def main():
     try:
-        # host = '95.165.107.62'
-        host = socket.gethostbyname(socket.gethostname())
+        # host = socket.gethostbyname(socket.gethostname())
+        host = socket.getfqdn()
         port = 8080
 
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

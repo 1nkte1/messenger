@@ -26,8 +26,8 @@ class messenger:
 
     #соединение с сервером
     def establish_connection(self):
-        host = socket.gethostbyname(socket.gethostname())
-        # host = '95.165.107.62'
+        # host = socket.gethostbyname(socket.gethostname())
+        host = '95.165.107.62'
         port = 8080
         try:
             self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,8 +49,7 @@ class messenger:
                 if not message:
                     break
                 data += message
-                data = data[:-1]
-            return data.decode('utf-8')
+            return data.decode('utf-8').strip("|")
         except Exception as e:
             # print('receive', e)
             self.offline_popup()

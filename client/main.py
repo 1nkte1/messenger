@@ -26,8 +26,8 @@ class messenger:
 
     #соединение с сервером
     def establish_connection(self):
-        # host = socket.gethostbyname(socket.gethostname())
-        host = '95.165.107.62'
+        host = socket.gethostbyname(socket.gethostname())
+        # host = '95.165.107.62'
         port = 8080
         try:
             self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

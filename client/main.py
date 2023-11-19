@@ -69,7 +69,7 @@ class messenger:
         offline = Tk()
         offline.geometry('150x100')
         offline.resizable(False, False)
-        offline.title('messenger')
+        offline.title('checkmate')
         offline_label = ttk.Label(offline, text='сервер оффлайн >_<')
         exit_button = ttk.Button(offline, text='закрыть', command=exit)
         offline_label.place(relx=0.5, rely=0.3, anchor='center')
@@ -306,7 +306,7 @@ class messenger:
                 help_window.clipboard_clear()
                 help_window.clipboard_append('komaeda.nadezhda@gmail.com')
 
-            help_window = Toplevel()
+            help_window = Toplevel(self.root)
 
             width = help_window.winfo_reqwidth()
             height = help_window.winfo_reqheight()
@@ -320,7 +320,7 @@ class messenger:
             help_window.configure(bg='#363636')
 
             info_label = ttk.Label(help_window, text='возникли вопросы?\nkomaeda.nadezhda@gmail.com')
-            copy_button = ttk.Button(help_window, text='скопировать')
+            copy_button = ttk.Button(help_window, text='скопировать', command=copy)
 
             info_label.pack()
             copy_button.pack()
@@ -329,7 +329,7 @@ class messenger:
         self.root = Tk()
 
         self.root.geometry('300x300')
-        self.root.title('messenger')
+        self.root.title('checkmate')
         main_icon = PhotoImage(master=self.root, file='icon.png')
         self.root.iconphoto(True, main_icon)
         self.root.resizable(False, False)

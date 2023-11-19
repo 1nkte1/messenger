@@ -116,7 +116,7 @@ def handle(client, address):
             if friend_ID == 'None':
                 sendmsg(f'{ID}.txt', contents)
             else:
-                history1, history2 = f'{ID}-{friend_ID}.txt', f'{friend_ID}-{ID}.txt'
+                history1, history2 = f'{ID}-{friend_txt', f'{friend_ID}-{ID}.txt'
 
                 if os.path.exists(history1):
                     sendmsg(history1, contents)

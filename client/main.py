@@ -1,12 +1,3 @@
-#одинаковые юзернеймы+
-#регистрация+
-#время отправления - на клиенте а не на сервере+
-#нажатие по enter+
-#запуск на определенном месте на экране+
-#трай эксепт с фотографиями
-#видно всем не видно никому+
-#информация
-
 from sys import exit
 import os
 import datetime
@@ -21,24 +12,67 @@ import tkinter.font as font
 #мессенджер
 class messenger:
     def __init__(self):
-        # self.ID = None
-        self.establish_connection()
+        # self.establish_connection()
+        self.enterip()
+
+    def enterip(self):
+        def instantip():
+            if os.path.exists('ip.txt'):
+                with open('ip.txt', 'r') as file:
+                    self.host = file.read()
+                    if self.host == '':
+                        return
+                    self.establish_connection()
+            else:
+                with open('ip.txt', 'w'):
+                    return
+
+        def savehostip():
+            self.host = ip_entry.get()
+            if self.host == '':
+                messagebox.showwarning('предупреждение', 'заполните поле')
+                return
+            with open('ip.txt', 'w') as file:
+                file.write(self.host)
+            ip_window.destroy()
+            self.establish_connection()
+
+        instantip()
+
+        self.host = None
+        ip_window = Tk()
+        screen_width = ip_window.winfo_screenwidth()
+        screen_height = ip_window.winfo_screenheight()
+        x = int((screen_width / 2) - (150 / 2))
+        y = int((screen_height / 2) - (80 / 2))
+        ip_window.geometry("{}x{}+{}+{}".format(150, 80, x, y))
+        ip_window.resizable(False, False)
+        ip_window.title('checkmate')
+
+        ip_label = ttk.Label(ip_window, text='введите ip адрес сервера:')
+        ip_entry = ttk.Entry(ip_window)
+        ip_button = ttk.Button(ip_window, text='подключиться к серверу', command=savehostip)
+
+        ip_label.pack()
+        ip_entry.pack()
+        ip_button.pack()
+
+        ip_window.protocol("WM_DELETE_WINDOW", exit)
+        ip_window.mainloop()
 
     #соединение с сервером
     def establish_connection(self):
-        # host = socket.gethostbyname(socket.gethostname())
-        host = '95.165.107.62'
+        # host = '192.168.1.120'
+        # host = '95.165.107.62'
         port = 8080
         try:
             self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.client.connect((host, port))
-            # print('connected!')
+            self.client.connect((self.host, port))
             self.login()
-        #если сервер оффлайн
-        except socket.error:
-            self.offline_popup()
-            # print('the server is offline')
-            exit()
+        except Exception:
+            with open('ip.txt', 'w'):
+                pass
+            self.enterip()
 
     #получение данных с сервера
     def receive(self):
@@ -50,8 +84,7 @@ class messenger:
                     break
                 data += message
             return data.decode('utf-8').strip("|")
-        except Exception as e:
-            # print('receive', e)
+        except Exception:
             self.offline_popup()
             exit()
 
@@ -60,7 +93,6 @@ class messenger:
         try:
             self.client.send((str(message) + '|').encode('utf-8'))
         except Exception as e:
-            # print('transmit', e)
             self.offline_popup()
             exit()
 
@@ -119,7 +151,6 @@ class messenger:
         login_icon = PhotoImage(master=signup_window, file='icon.png')
         signup_window.iconphoto(True, login_icon)
 
-
         screen_width = signup_window.winfo_screenwidth()
         screen_height = signup_window.winfo_screenheight()
         x = int((screen_width / 2) - (280 / 2))
@@ -169,7 +200,6 @@ class messenger:
     def login(self):
         # проверка правильности логина и пароля
         def login_password_check(event):
-
             for data in [login_entry.get(), password_entry.get()]:
                 for char in data:
                     if char == ":" or char == "*":
@@ -211,7 +241,7 @@ class messenger:
 
             self.transmit(f'login{login}:{password}')
             response = self.receive()
-            if response.startswith('1'):
+            if response == "1":
                 self.main_info()
                 self.main_menu_place()
                 self.root.mainloop()
@@ -228,7 +258,6 @@ class messenger:
             if os.path.exists('details.txt'):
                 with open('details.txt', 'r') as file:
                     contents = file.read()
-
                 if contents == '':
                     return
                 else:
@@ -238,7 +267,7 @@ class messenger:
                     except Exception:
                         with open('details.txt', 'w'):
                             pass
-                        self.login()
+                        return
             else:
                 with open('details.txt', 'w'):
                     return
@@ -253,7 +282,7 @@ class messenger:
             login_window.iconphoto(True, login_icon)
         except TclError:
             login_window.withdraw()
-            messagebox.showwarning('ошибка', 'мессенджер не может быть запущен, потому что фотографии были изменены. переустановите приложение или обратитесь за помощью к разработчику\nkomaeda.nadezhda@gmail.com')
+            messagebox.showwarning('ошибка', 'мессенджер не может быть запущен, потому что файлы приложения были изменены. переустановите приложение или обратитесь за помощью к разработчику\nkomaeda.nadezhda@gmail.com')
             exit()
 
         screen_width = login_window.winfo_screenwidth()
@@ -261,8 +290,6 @@ class messenger:
         x = int((screen_width / 2) - (200 / 2))
         y = int((screen_height / 2) - (100 / 2))
         login_window.geometry("{}x{}+{}+{}".format(200, 100, x, y))
-        # login_window.eval('tk::PlaceWindow . center')
-        # login_window.geometry('200x100')
         login_window.resizable(False, False)
 
         style1 = ttk.Style()
@@ -340,7 +367,6 @@ class messenger:
         y = int((screen_height / 2) - (300 / 2))
         self.root.geometry("{}x{}+{}+{}".format(300, 300, x, y))
 
-        # customtkinter.set_appearance_mode('dark')
         #темы
         dark_theme = ttk.Style()
         dark_theme.theme_use('alt')
@@ -371,6 +397,7 @@ class messenger:
         self.transmit('getpfp')
         pfp_index = self.receive()
 
+        self.profile_var = self.profile_logo0
         if pfp_index == '0':
             self.profile_var = self.profile_logo0
         elif pfp_index == '1':
@@ -558,8 +585,8 @@ class messenger:
         def find_friend():
             # нажатие на кнопку сообщений
             def select_friend():
-                self.friend_ID = result[1:]
-                self.friend_username.set(self.search_entry.get())
+                self.friend_ID, uname = result[1:].split(":")
+                self.friend_username.set(uname)
                 self.messages_click(self.friend_ID)
 
             if self.search_entry.get() == self.username.get():
@@ -614,7 +641,7 @@ class messenger:
                     x += 0.25
 
             def forward():
-                for i in range(self.start, min(self.start+4, len(self.variables))):
+                for i in range(self.start, min(self.start+4, len(contacts))):
                     globals()[self.variables[i]].place_forget()
 
                 self.start += 4
@@ -625,7 +652,7 @@ class messenger:
                 back_button['state'] = 'normal'
 
             def back():
-                for i in range(self.start, min(self.start + 4, len(self.variables))):
+                for i in range(self.start, min(self.start + 4, len(contacts))):
                     globals()[self.variables[i]].place_forget()
 
                 self.start -= 4
@@ -660,7 +687,6 @@ class messenger:
             self.friend_username.set('избранное')
             self.friend_ID = None
             self.messages_click(self.friend_ID)
-
 
         #виджеты
         self.search_label = ttk.Label(self.root, text='поиск друзей', anchor="center", justify="center", width=35, font=font.Font(size=15))
@@ -707,7 +733,6 @@ class messenger:
                 if char == '*':
                     messagebox.showwarning('предупреждение', 'недопустимые символы (*)')
                     return
-            self.msghistory.configure(state='normal')
             current_time = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
             self.transmit(f"sendmsg{ID}*{current_time}\n{self.username.get()}:\n{self.text_widget.get('1.0', 'end')}\n")
             #сразу после запускаем удаление ненужного переноса строки
@@ -717,7 +742,6 @@ class messenger:
             while self.needs_updating_check:
                 self.transmit(f'loadmsghistory{ID}')
                 self.contents = self.receive()
-                # self.idk.append(contents)
                 time.sleep(0.5)
 
         def updating():
@@ -734,22 +758,16 @@ class messenger:
                     self.msghistory.xview(MOVETO, scroll_x)
                 else:
                     self.msghistory.see('end')
-
-                # self.idk = []
                 self.msghistory.configure(state='disabled')
             except Exception:
                 pass
 
             if self.needs_updating_check:
-                self.root.update()
                 self.root.after(ms=500, func=updating)
 
 
         def clear_msghistory():
             self.transmit(f'clearmsghistory{ID}')
-            self.msghistory.configure(state='normal')
-            self.msghistory.delete('1.0', 'end')
-            self.msghistory.configure(state='disabled')
 
         def go_back():
             self.needs_updating_check = False
@@ -792,7 +810,6 @@ class messenger:
         self.scrollbar.place(relx=0.95, rely=0.1, height=165)
         self.scrollbar2.place(relx=0, rely=0.65, width=300)
 
-        # self.idk = deque()
         update = Thread(target=load_messages)
         update.start()
         updating()

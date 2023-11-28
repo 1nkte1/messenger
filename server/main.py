@@ -51,12 +51,12 @@ def handle(client, address):
                     if password == cell.offset(column=1).value:
                         print('correct password!')
                         ID = int(cell.offset(column=-1).value)
-                        transmit(client, '1' + str(ID))
+                        transmit(client, '1')
+                        print('successful login')
                         return
             else:
                 print('wrong login or password')
                 transmit(client, '2')
-                return
 
         elif message.startswith('signup'):
             username, login, password = message[len('signup'):].split(':')
@@ -65,14 +65,17 @@ def handle(client, address):
             for cell in sheet['D']:
                 if cell.coordinate != f'D{ID+1}' and username == str(cell.value):
                     transmit(client, 2)
+                    print('username already exists')
                     return
 
             for cell in sheet['B']:
                 if cell.coordinate != f'B{ID+1}' and login == str(cell.value):
                     transmit(client, 3)
+                    print('login already exists')
                     return
 
             transmit(client, 1)
+            print('successful signup')
             ID = len(sheet['A'])
             sheet[f'A{ID+1}'] = ID
             sheet[f'B{ID+1}'] = login
@@ -80,11 +83,10 @@ def handle(client, address):
             sheet[f'D{ID+1}'] = username
             sheet[f'E{ID+1}'] = 0
             database.save("database.xlsx")
-            return
 
         elif message.startswith('username'):
             transmit(client, sheet[f'D{ID+1}'].value)
-            return
+            print('username sent')
 
         elif message.startswith('editusername'):
             username = message[len('editusername'):]
@@ -92,31 +94,32 @@ def handle(client, address):
             for cell in sheet['D']:
                 if cell.coordinate != f'D{ID+1}' and username == str(cell.value):
                     transmit(client, 2)
+                    print('username already exists')
                     return
 
             sheet[f'D{ID + 1}'] = username
             transmit(client, 1)
+            print('username changed')
             database.save("database.xlsx")
-            return
 
         elif message.startswith('editpassword'):
             password = message[len('editpassword'):]
             sheet[f'C{ID + 1}'] = password
             database.save("database.xlsx")
-            return
+            print('password changed')
 
         elif message.startswith('sendmsg'):
             def sendmsg(path, message):
                 with open(path, 'a') as file:
                     file.write(message)
+                print(f'message sent to {friend_ID}')
 
             message = message[len('sendmsg'):]
-            print(message)
             friend_ID, contents = message.split('*')
             if friend_ID == 'None':
                 sendmsg(f'{ID}.txt', contents)
             else:
-                history1, history2 = f'{ID}-{friend_txt', f'{friend_ID}-{ID}.txt'
+                history1, history2 = f'{ID}-{friend_ID}.txt', f'{friend_ID}-{ID}.txt'
 
                 if os.path.exists(history1):
                     sendmsg(history1, contents)
@@ -124,13 +127,13 @@ def handle(client, address):
                     sendmsg(history2, contents)
                 else:
                     sendmsg(history1, contents)
-            return
 
 
         elif message.startswith('clearmsghistory'):
             def clearmsghistory(path):
                 with open(path, 'w'):
                     pass
+                print(f'msghistory with {friend_ID} cleared')
 
             friend_ID = message[len('clearmsghistory'):]
             if friend_ID == 'None':
@@ -143,20 +146,13 @@ def handle(client, address):
                     clearmsghistory(history2)
                 else:
                     clearmsghistory(history1)
-            return
 
         elif message.startswith('loadmsghistory'):
             def loadmsghistory(path):
                 with open(path, 'a+') as file:
                     file.seek(0)
-                    # if file_size < 1024:
-                    #     file.seek(0)
-                    # else:
-                    #     file.seek(file_size-1024)
                     contents = file.read()
                     transmit(client, contents)
-                    print('success')
-                    return
 
             friend_ID = message[len('loadmsghistory'):]
 
@@ -170,20 +166,19 @@ def handle(client, address):
                     loadmsghistory(history2)
                 else:
                     loadmsghistory(history1)
-            return
 
         elif message.startswith('findfriend'):
             username = message[len('findfriend'):]
             for cell in sheet['D']:
                 if username == str(cell.value):
-                    print('found!')
+                    print(f'{username} found')
                     friend_ID = cell.offset(column=-3).value
-                    transmit(client, f'1{friend_ID}')
+                    friend_username = sheet[f'D{friend_ID+1}'].value
+                    transmit(client, f'1{friend_ID}:{friend_username}')
                     return
             else:
-                print('not found')
+                print('username not found')
                 transmit(client, '2')
-                return
 
         elif message.startswith('getcontacts'):
             filenames = glob.glob('*.txt')
@@ -199,7 +194,6 @@ def handle(client, address):
                 else:
                     try:
                         u1, u2 = log.split('-')
-                        print(u1, u2)
                         if u1 == str(ID) or u2 == str(ID):
                             if u1 != str(ID):
                                 contacts_ID.append(int(u1))
@@ -211,15 +205,15 @@ def handle(client, address):
             contacts_usernames = ""
             if len(contacts_ID) == 0:
                 transmit(client, 0)
+                print('no contacts found')
                 return
             else:
                 for contact in contacts_ID:
                     username = sheet[f'D{contact+1}'].value
                     pfp = sheet[f'E{contact+1}'].value
                     contacts_usernames += f'{username}:{pfp}*'
-                print(contacts_usernames)
                 transmit(client, contacts_usernames)
-                return
+                print('contacts sent')
 
         elif message.startswith('getfriendID'):
             username = message[len('getfriendID'):]
@@ -232,24 +226,23 @@ def handle(client, address):
         elif message.startswith('getpfp'):
             index = sheet[f'E{ID+1}'].value
             transmit(client, index)
+            print('pfp sent')
 
         elif message.startswith('editpfp'):
             index = message[len('editpfp'):]
             sheet[f'E{ID+1}'] = index
             database.save("database.xlsx")
-            return
+            print('pfp edited')
 
         else:
             print('unknown command >_<')
-            transmit(client, '2')
-            return
 
     while not connection_lost:
         communication()
 def main():
     try:
-        # host = socket.gethostbyname(socket.gethostname())
-        host = socket.getfqdn()
+        host = socket.gethostbyname(socket.gethostname())
+        print(host)
         port = 8080
 
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
